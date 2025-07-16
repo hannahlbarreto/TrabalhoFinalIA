@@ -1,4 +1,5 @@
 Nomes: Hannah Barreto, Matheus Rocha, Paulo Freitas e Ricardo Braz
+
 Alunos de Ciência da Computação e Engenharia da Computação
 Disciplina: Inteligência Artificial (2025.1) — Prof. Edjard Mota
 
