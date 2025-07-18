@@ -127,23 +127,9 @@ Classification Result: 0 (Expected: 0)
 
 ---
 
-## 📈 Extensões Futuras
-
-- [ ] Suporte a tabuleiros **incompletos**
-- [ ] Raciocínio com **incerteza** (predicados fuzzy)
-- [ ] Treinamento de **modelos híbridos** com lógica e redes neurais
-
----
-
 ## 🧩 Referências
 
 - [LTN-Torch GitHub](https://github.com/logictensornetworks/ltn)
 - `LTN: Learning with Soft Logic and Neural Networks`, Donadello et al., 2017
-
----
-
-## 👨‍💻 Autor
-
-Desenvolvido por [Seu Nome Aqui] — sinta-se livre para contribuir, sugerir melhorias ou usar como base para estudos de lógica simbólica e aprendizado de máquina interpretável.
 
 ---
