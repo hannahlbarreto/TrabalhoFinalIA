@@ -113,6 +113,60 @@ else:
 
 ---
 
+## 📥 Como Usar
+
+1. **Prepare seu tabuleiro Sudoku como um arquivo CSV**:
+
+Exemplo 4x4:
+
+```csv
+1,2,3,4
+3,4,1,2
+2,1,4,3
+4,3,2,1
+```
+
+Exemplo 9x9:
+
+```csv
+5,3,4,6,7,8,9,1,2
+6,7,2,1,9,5,3,4,8
+1,9,8,3,4,2,5,6,7
+8,5,9,7,6,1,4,2,3
+4,2,6,8,5,3,7,9,1
+7,1,3,9,2,4,8,5,6
+9,6,1,5,3,7,2,8,4
+2,8,7,4,1,9,6,3,5
+3,4,5,2,8,6,1,7,9
+```
+
+2. **Chame a função de classificação**:
+
+- Para um único tabuleiro:
+
+```python
+result = classify_sudoku("caminho/para/arquivo.csv")
+print("✅ Válido" if result == 1 else "❌ Inválido")
+```
+
+- Para classificar todos os arquivos `.csv` dentro de uma pasta:
+
+```python
+import os
+
+test_dir = "caminho/para/pasta_com_csvs"
+
+print(f"Classifying all CSV files in '{test_dir}':")
+for filename in os.listdir(test_dir):
+    if filename.endswith(".csv"):
+        file_path = os.path.join(test_dir, filename)
+        classification_result = classify_sudoku(file_path)
+        print(f"File: {filename}, Classification Result: {classification_result}")
+```
+
+
+---
+
 ## 📤 Exemplo de Saída
 
 ```
