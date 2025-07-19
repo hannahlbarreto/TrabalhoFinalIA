@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import torch
 import ltn # Ensure ltn is imported for predicate definitions
+import sys
 
 # Redefine DummyModel and Predicates within the test scope for clarity and self-containment
 class DummyModel(torch.nn.Module):
@@ -201,13 +202,17 @@ def classify_sudoku(csv_file_path):
         return 1
     else:
         return 0
-
-# --- Test Cases ---
-# Iterate through files in the test directory and classify
-print(f"Classifying all CSV files in '{test_dir}':")
-for filename in os.listdir(test_dir):
-    if filename.endswith(".csv"):
-        file_path = os.path.join(test_dir, filename)
-        classification_result = classify_sudoku(file_path)
-        print(f"File: {filename}, Classification Result: {classification_result}")
+        
+# Example usage: Get the directory path from command-line arguments
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        test_directory_path = sys.argv[1]
+        for filename in os.listdir(test_dir):
+            if filename.endswith(".csv"):
+                file_path = os.path.join(test_dir, filename)
+                classification_result = classify_sudoku(file_path)
+                print(f"File: {filename}, Classification Result: {classification_result}")
+    else:
+        print("Usage: python your_script_name.py <directory_path>")
+        print("Please provide the path to the directory containing Sudoku board CSV files.")
 
