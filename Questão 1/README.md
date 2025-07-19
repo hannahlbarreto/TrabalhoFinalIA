@@ -68,20 +68,20 @@ result = classify_sudoku("caminho/para/arquivo.csv")
 print("✅ Válido" if result == 1 else "❌ Inválido")
 ```
 
-- Para classificar todos os arquivos `.csv` dentro de uma pasta:
+3. **Execute o script via terminal**, passando o caminho da pasta com os CSVs:
 
-```python
-import os
-
-test_dir = "caminho/para/pasta_com_csvs"
-
-print(f"Classifying all CSV files in '{test_dir}':")
-for filename in os.listdir(test_dir):
-    if filename.endswith(".csv"):
-        file_path = os.path.join(test_dir, filename)
-        classification_result = classify_sudoku(file_path)
-        print(f"File: {filename}, Classification Result: {classification_result}")
+```bash
+python classify_sudoku.py /caminho/para/pasta
 ```
+
+> Exemplo:
+
+```bash
+python classify_sudoku.py ./sudokus_teste
+```
+
+---
+
 
 ## ⚙️ Lógica Interna
 
