@@ -1,7 +1,7 @@
 
 # 🧠 Analisador Heurístico de Sudoku - Questão 2
 
-Este projeto implementa um analisador heurístico para tabuleiros de Sudoku abertos (incompletos), desenvolvido em Python.
+Este projeto implementa um analisador heurístico para tabuleiros de Sudoku abertos (incompletos).
 
 O script analisa um ou mais tabuleiros a partir de arquivos `.csv`, classifica o estado atual do jogo e avalia as consequências de movimentos futuros, baseando-se em regras determinísticas para identificar estados sem solução.
 
@@ -29,7 +29,7 @@ O script avalia um tabuleiro aberto com base nas seguintes regras e análises, c
 
 Este script foi construído com foco em eficiência para a análise determinística, utilizando:
 
-- Python 3.x  
+- Python 3.12.3
 - NumPy  
 
 Instale a única dependência com:
@@ -63,13 +63,13 @@ Prepare uma pasta com os tabuleiros de teste:
 Execute o script via terminal, passando o caminho da pasta com os tabuleiros como argumento:
 
 ```bash
-python analisador_sudoku.py /caminho/para/sua/pasta
+python seu_script.py <caminho_para_a_pasta>
 ```
 
 Exemplo:
 
 ```bash
-python analisador_sudoku.py ./test_boards
+python analisador_sudoku.py test_boards
 ```
 
 ---
@@ -126,10 +126,3 @@ Classificação: Solução Possível
 [ Análise de 2 Movimentos ]
   - Análise pulada: o tabuleiro está muito aberto e o cálculo seria muito longo.
 ```
-
----
-
-## 👥 Autores
-
-- [Seu Nome Aqui]  
-- [Nome do Colega de Time]
