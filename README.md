@@ -1,4 +1,4 @@
-Nomes: Hannah Barreto, Matheus Rocha, Paulo Freitas e Ricardo Braz
+Nomes: Hannah Barreto, Matheus Rocha, Paulo Freitas, Luã Souza e Ricardo Braz
 
 Alunos de Ciência da Computação e Engenharia da Computação
 
