@@ -126,3 +126,8 @@ Classificação: Solução Possível
 [ Análise de 2 Movimentos ]
   - Análise pulada: o tabuleiro está muito aberto e o cálculo seria muito longo.
 ```
+---
+
+## 📚 Referências
+
+- Donadello, I., Serafini, L., & Garcez, A. d. (2020). *Designing Logic Tensor Networks for Visual Sudoku Puzzle Classification*. [arXiv:2002.01532](https://arxiv.org/abs/2002.01532)
