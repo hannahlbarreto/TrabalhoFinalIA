@@ -221,75 +221,26 @@ def analyze_sudoku(board, file_name):
 
 # --- Ponto de Entrada do Script ---
 if __name__ == "__main__":
-    # Em um Jupyter Notebook, sys.argv não é usado para argumentos de linha de comando.
-    # Vamos simular a leitura de um caminho de diretório.
-    
+    # 1. Valida se o argumento da pasta foi fornecido
     if len(sys.argv) != 2:
         print("ERRO: Você precisa especificar o caminho para a pasta de tabuleiros.")
-        print("Uso: python main.py <caminho_para_a_pasta>")
+        print("Uso: python seu_script.py <caminho_para_a_pasta>")
         exit()
-        directory_path = sys.argv[1]
+    
+    directory_path = sys.argv[1]
 
-    # Para execução em notebook, defina o caminho da pasta aqui
-    # Certifique-se de que a pasta 'test_boards' exista e contenha os arquivos CSV
-    directory_path = 'test_boards' # Pasta de exemplo com os arquivos CSV
-
+    # 2. Valida se o caminho fornecido é um diretório
     if not os.path.isdir(directory_path):
         print(f"ERRO: O caminho '{directory_path}' não é um diretório válido.")
-        # Para execução em notebook, podemos tentar criar um diretório de exemplo e alguns arquivos.
-        print("Criando diretório de exemplo e arquivos de tabuleiro para demonstração.")
-        os.makedirs(directory_path, exist_ok=True)
-        # Create some dummy board files for demonstration in the notebook
-        # Create a 4x4 solvable board
-        board_solucao_possivel_4x4_empty = np.zeros((4, 4), dtype=int)
-        np.savetxt(os.path.join(directory_path, 'tabuleiro_solucao_possivel_4x4.csv'), board_solucao_possivel_4x4_empty, delimiter=',', fmt='%d')
-
-        # Create a truly unsolvable 4x4 board
-        board_sem_solucao_4x4_v6 = np.array([
-            [0, 0, 1, 0],
-            [0, 0, 0, 1],
-            [1, 0, 0, 0],
-            [0, 1, 0, 0]
-        ])
-        np.savetxt(os.path.join(directory_path, 'tabuleiro_sem_solucao_4x4.csv'), board_sem_solucao_4x4_v6, delimiter=',', fmt='%d')
-
-        # Create a 9x9 solvable board (a simple one)
-        board_solucao_possivel_9x9 = np.array([
-            [5, 3, 0, 0, 7, 0, 0, 0, 0],
-            [6, 0, 0, 1, 9, 5, 0, 0, 0],
-            [0, 9, 8, 0, 0, 0, 0, 6, 0],
-            [8, 0, 0, 0, 6, 0, 0, 0, 3],
-            [4, 0, 0, 8, 0, 3, 0, 0, 1],
-            [7, 0, 0, 0, 2, 0, 0, 0, 6],
-            [0, 6, 0, 0, 0, 0, 2, 8, 0],
-            [0, 0, 0, 4, 1, 9, 0, 0, 5],
-            [0, 0, 0, 0, 8, 0, 0, 7, 9]
-        ])
-        np.savetxt(os.path.join(directory_path, 'tabuleiro_solucao_possivel_9x9.csv'), board_solucao_possivel_9x9, delimiter=',', fmt='%d')
-
-        # Create a 9x9 unsolvable board
-        board_sem_solucao_9x9 = np.array([
-            [5, 3, 4, 6, 7, 8, 9, 1, 2],
-            [6, 7, 2, 1, 9, 5, 3, 4, 8],
-            [1, 9, 8, 3, 4, 2, 5, 6, 7],
-            [8, 5, 9, 7, 6, 1, 4, 2, 3],
-            [4, 2, 6, 8, 5, 3, 7, 9, 1],
-            [7, 1, 3, 9, 2, 4, 8, 5, 6],
-            [9, 6, 1, 5, 3, 7, 2, 8, 4],
-            [2, 8, 7, 4, 1, 9, 6, 3, 5],
-            [3, 4, 5, 2, 8, 6, 1, 7, 0] # Empty cell at (8,8) where 1-9 are blocked
-        ])
-        np.savetxt(os.path.join(directory_path, 'tabuleiro_sem_solucao_9x9.csv'), board_sem_solucao_9x9, delimiter=',', fmt='%d')
-        print(f"Diretório '{directory_path}' criado com arquivos de exemplo.")
         exit()
 
     print(f"\nProcessando arquivos CSV na pasta '{directory_path}'...")
-
+    
+    # 3. Itera sobre os arquivos e analisa cada um
     for filename in os.listdir(directory_path):
         if filename.endswith(".csv"):
             file_path = os.path.join(directory_path, filename)
             board = load_and_validate_board(file_path)
             if board is not None:
-                # Set global BOARD_SIZE and BLOCK_SIZE after successful load and validation
-                set_board_size(board)
+                # O tamanho do tabuleiro é definido dinamicamente pela função load_and_validate_board
                 analyze_sudoku(board, filename)
