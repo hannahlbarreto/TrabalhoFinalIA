@@ -1,41 +1,50 @@
+import torch
+import ltn
 import numpy as np
-import sys
 import os
+import sys
+import glob
 import copy
 
-# --- Constantes ---
-# BOARD_SIZE e BLOCK_SIZE serão definidos ao carregar cada tabuleiro.
-BOARD_SIZE = None
-BLOCK_SIZE = None
+# --- Parte 0: Configuração do Dispositivo (GPU ou CPU) ---
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"INFO: Usando dispositivo: {device}\n")
 
-# --- Funções Auxiliares ---
-def set_board_size(board):
-    """Define BOARD_SIZE e BLOCK_SIZE com base nas dimensões do tabuleiro."""
-    global BOARD_SIZE, BLOCK_SIZE
-    BOARD_SIZE = board.shape[0]
-    BLOCK_SIZE = int(np.sqrt(BOARD_SIZE))
-    if BLOCK_SIZE * BLOCK_SIZE != BOARD_SIZE:
-        return False # Not a valid Sudoku board size (e.g., 5x5)
-    return True
 
+# --- Parte 1: Definições da Rede Neural e do Predicado LTN ---
+
+class SudokuNet(torch.nn.Module):
+    """
+    Rede Neural (o 'cérebro' do nosso predicado).
+    Recebe um tabuleiro e retorna um único valor que representa a 'solvabilidade'.
+    """
+    def __init__(self, board_size):
+        super(SudokuNet, self).__init__()
+        self.board_size = board_size
+        input_size = board_size * board_size
+        self.fc1 = torch.nn.Linear(input_size, 64)
+        self.fc2 = torch.nn.Linear(64, 64)
+        self.fc3 = torch.nn.Linear(64, 1)
+
+    def forward(self, x):
+        x = x.reshape(-1, self.board_size * self.board_size)
+        x = torch.relu(self.fc1(x))
+        x = torch.relu(self.fc2(x))
+        return torch.sigmoid(self.fc3(x))
+
+# --- Parte 2: Funções Auxiliares e Determinísticas ---
 
 def violates_constraint(board, move, board_size, block_size):
     """Verifica se uma jogada viola uma regra básica do Sudoku."""
     row, col, digit = move
-    # Verifica linha
-    if digit in board[row, :]:
-        return True
-    # Verifica coluna
-    if digit in board[:, col]:
-        return True
-    # Verifica bloco
+    if digit in board[row, :]: return True
+    if digit in board[:, col]: return True
     start_row, start_col = row - row % block_size, col - col % block_size
-    if digit in board[start_row:start_row + block_size, start_col:start_col + block_size]:
-        return True
+    if digit in board[start_row:start_row + block_size, start_col:start_col + block_size]: return True
     return False
 
 def get_empty_cells(board, board_size):
-    """Retorna uma lista de tuplas (linha, coluna) para células vazias (valor 0)."""
+    """Retorna uma lista de tuplas (linha, coluna) para células vazias."""
     cells = []
     for r in range(board_size):
         for c in range(board_size):
@@ -43,204 +52,186 @@ def get_empty_cells(board, board_size):
                 cells.append((r, c))
     return cells
 
-# --- Funções Principais ---
-def load_and_validate_board(file_path):
-    """
-    Carrega o tabuleiro de Sudoku de um arquivo CSV e valida suas dimensões.
-    Define BOARD_SIZE e BLOCK_SIZE.
-    Retorna o tabuleiro numpy array ou None em caso de erro.
-    """
-    print(f"\nLendo o tabuleiro do arquivo '{file_path}'...")
-    try:
-        board = np.loadtxt(file_path, delimiter=',', dtype=int)
-        print("Tabuleiro Lido:\n", board)
-
-        # Define e valida as dimensões do tabuleiro
-        if not set_board_size(board):
-            print(f"ERRO: O tabuleiro no arquivo '{file_path}' tem dimensões {board.shape}, "
-                f"que não são válidas para um tabuleiro de Sudoku (apenas 4x4 ou 9x9).")
-            return None
-        if board.shape[0] != board.shape[1]:
-            print(f"ERRO: O tabuleiro no arquivo '{file_path}' tem dimensões não quadradas {board.shape}.")
-            return None
-
-
-        return board
-
-    except IOError:
-        print(f"ERRO: Arquivo '{file_path}' não encontrado.")
-        return None
-    except ValueError:
-        print(f"ERRO: O arquivo '{file_path}' não parece ser um CSV válido para o tabuleiro.")
-        return None
-
-def check_sem_solucao(board, board_size, block_size):
-    """
-    Verifica se a condição de 'sem solução' foi atingida no tabuleiro atual.
-    Retorna True se for "Sem Solução", False caso contrário.
-    """
+def check_sem_solucao_deterministico(board, board_size, block_size):
+    """Verifica a regra específica da Questão 2, Parte 1."""
     empty_cells = get_empty_cells(board, board_size)
-    if not empty_cells:
-        # Se não há células vazias, o tabuleiro está completo e não é "Sem Solução" por falta de movimentos.
-        return False
-
+    if not empty_cells: return False, None
     for digit_to_check in range(1, board_size + 1):
         can_place_digit = False
         for cell in empty_cells:
-            move = (cell[0], cell[1], digit_to_check)
-            # Verifica se o dígito pode ser colocado em pelo menos uma célula vazia
-            if not violates_constraint(board, move, board_size, block_size):
+            if not violates_constraint(board, (cell[0], cell[1], digit_to_check), board_size, block_size):
                 can_place_digit = True
                 break
-
-        # Se um dígito não pode ser colocado em nenhuma célula vazia, o tabuleiro está em um estado "Sem Solução"
         if not can_place_digit:
-            print(f"DIAGNÓSTICO: O dígito '{digit_to_check}' não pode ser colocado em nenhuma célula vazia restante.")
-            return True
+            return True, digit_to_check
+    return False, None
 
-    # Se todos os dígitos podem ser colocados em pelo menos uma célula vazia, não é "Sem Solução" nesta etapa
-    return False
+# --- Parte 3: Treinamento do Modelo LTN ---
+
+def generate_training_data(num_samples, board_size):
+    """Gera dados de treino: tabuleiros solucionáveis e sem solução."""
+    solvable_boards = []
+    unsolvable_boards = []
+    
+    if board_size == 9:
+        base_solved = np.array([
+            [5,3,4,6,7,8,9,1,2],[6,7,2,1,9,5,3,4,8],[1,9,8,3,4,2,5,6,7],
+            [8,5,9,7,6,1,4,2,3],[4,2,6,8,5,3,7,9,1],[7,1,3,9,2,4,8,5,6],
+            [9,6,1,5,3,7,2,8,4],[2,8,7,4,1,9,6,3,5],[3,4,5,2,8,6,1,7,9]
+        ])
+    else: # Exemplo 4x4
+        base_solved = np.array([
+            [1,2,3,4],[3,4,1,2],[2,1,4,3],[4,3,2,1]
+        ])
+
+    for _ in range(num_samples):
+        board = base_solved.copy()
+        for _ in range(board_size * board_size // 2):
+            r, c = np.random.randint(0, board_size, 2)
+            board[r,c] = 0
+        solvable_boards.append(board)
+
+        board = base_solved.copy()
+        r, c = np.random.randint(0, board_size, 2)
+        board[r, c] = board[r, (c + 1) % board_size]
+        unsolvable_boards.append(board)
+        
+    return torch.tensor(np.array(solvable_boards), dtype=torch.float32), \
+        torch.tensor(np.array(unsolvable_boards), dtype=torch.float32)
 
 
-def evaluate_one_move(board, board_size, block_size):
-    """
-    Avalia o impacto de cada possível movimento (colocar um dígito em uma célula vazia)
-    na classificação do tabuleiro ("Sem Solução" ou "Solução Possível").
-    Retorna duas listas: movimentos que levam a "Sem Solução" e movimentos que mantêm "Solução Possível".
-    """
+def train_model(is_solvable_predicate, board_size):
+    """Treina o predicado LTN usando axiomas de supervisão."""
+    print(f"Iniciando treinamento do modelo LTN para {board_size}x{board_size}...")
+    
+    # Usaremos apenas o quantificador ForAll, que está funcionando
+    ForAll = ltn.Quantifier(ltn.fuzzy_ops.AggregPMeanError(p=2), quantifier="f")
+    
+    solvable_data, unsolvable_data = generate_training_data(128, board_size)
+    solvable_data = solvable_data.to(device)
+    unsolvable_data = unsolvable_data.to(device)
+    
+    s_solvable = ltn.Variable("s_solvable", solvable_data)
+    s_unsolvable = ltn.Variable("s_unsolvable", unsolvable_data)
+    optimizer = torch.optim.Adam(is_solvable_predicate.model.parameters(), lr=0.001)
+
+    for epoch in range(1000):
+        optimizer.zero_grad()
+        
+        # Axioma 1: Para todos os tabuleiros solucionáveis, o predicado é verdadeiro.
+        sat_ax1 = ForAll(s_solvable, is_solvable_predicate(s_solvable))
+        
+        # Axioma 2: Para todos os tabuleiros sem solução, o predicado é verdadeiro.
+        # (Lemos o resultado e o tratamos como uma perda na próxima etapa)
+        sat_ax2 = ForAll(s_unsolvable, is_solvable_predicate(s_unsolvable))
+        
+        # Calculamos a perda de cada axioma separadamente
+        # e as somamos, evitando os operadores lógicos problemáticos.
+        loss1 = 1. - sat_ax1.value # Queremos que sat_ax1 seja 1.0
+        loss2 = sat_ax2.value     # Queremos que sat_ax2 seja 0.0
+        loss = loss1 + loss2
+        
+        loss.backward()
+        optimizer.step()
+        if epoch % 200 == 0:
+            print(f"  Epoch {epoch}, Loss Total: {loss.item():.4f} (bons_boards_sat: {sat_ax1.value.item():.2f}, maus_boards_sat: {sat_ax2.value.item():.2f})")
+    print("Treinamento concluído.\n")
+
+# --- Parte 4: Análise e Relatório ---
+
+def analyze_sudoku_with_ltn(board, file_name, board_size, block_size, is_solvable_predicate):
+    """Realiza a análise completa, usando o modelo LTN treinado."""
+    print(f"--- Processando arquivo: {file_name} ---")
+    print("Tabuleiro Lido:\n", board)
+
+    is_unsolvable, problematic_digit = check_sem_solucao_deterministico(board, board_size, block_size)
+
+    print("\n--- RELATÓRIO DE ANÁLISE ---")
+    if is_unsolvable:
+        print(f"Classificação: Sem Solução")
+        print(f"Motivo: O dígito '{problematic_digit}' não pode ser colocado em nenhuma célula vazia.")
+        return
+
+    print("Classificação: Solução Possível")
+    print("\n[ Análise de Movimentos com LTN (1 passo) ]")
+    
+    possible_moves_with_scores = []
     empty_cells = get_empty_cells(board, board_size)
-    moves_leading_to_sem_solucao = []
-    moves_maintaining_solucao_possivel = []
-
-    for row, col in empty_cells:
+    
+    for cell in empty_cells:
         for digit in range(1, board_size + 1):
-            move = (row, col, digit)
+            if not violates_constraint(board, (cell[0], cell[1], digit), board_size, block_size):
+                temp_board = torch.tensor(board.copy(), dtype=torch.float32).to(device)
+                temp_board[cell[0], cell[1]] = digit
+                score = is_solvable_predicate(ltn.Constant(temp_board)).value.item()
+                possible_moves_with_scores.append(((cell[0], cell[1], digit), score))
 
-            # Verifica restrições básicas antes de aplicar o movimento
-            if violates_constraint(board, move, board_size, block_size):
-                continue
+    if not possible_moves_with_scores:
+        print("  - Nenhuma jogada válida encontrada.")
+        return
 
-            # Cria uma cópia do tabuleiro e aplica o movimento
-            copied_board = np.copy(board)
-            copied_board[row, col] = digit
+    possible_moves_with_scores.sort(key=lambda x: x[1], reverse=True)
 
-            # Verifica se o tabuleiro copiado é "Sem Solução" após o movimento
-            # Passa as dimensões do tabuleiro copiado para a função de verificação
-            if check_sem_solucao(copied_board, board_size, block_size):
-                moves_leading_to_sem_solucao.append(move)
-            else:
-                moves_maintaining_solucao_possivel.append(move)
+    print("  - Jogadas com maior probabilidade de manter a solução (melhores scores):")
+    for move, score in possible_moves_with_scores[:5]:
+        print(f"    - Jogar {move[2]} em ({move[0]},{move[1]}) -> Score de Solvabilidade: {score:.4f}")
 
-
-    return moves_leading_to_sem_solucao, moves_maintaining_solucao_possivel
-
-def evaluate_two_moves(board, board_size, block_size):
-    """
-    Avalia o impacto de sequências de dois movimentos na classificação do tabuleiro.
-    Retorna duas listas de sequências de dois movimentos: aquelas que levam a "Sem Solução"
-    e aquelas que mantêm "Solução Possível".
-    """
-    empty_cells = get_empty_cells(board, board_size)
-    two_moves_leading_to_sem_solucao = []
-    two_moves_maintaining_solucao_possivel = []
-
-    # Itera sobre cada possível primeiro movimento
-    for r1, c1 in empty_cells:
-        for d1 in range(1, board_size + 1):
-            first_move = (r1, c1, d1)
-
-            # Verifica restrições básicas para o primeiro movimento
-            if violates_constraint(board, first_move, board_size, block_size):
-                continue
-
-            # Cria uma cópia profunda do tabuleiro e aplica o primeiro movimento
-            board_after_first_move = copy.deepcopy(board)
-            board_after_first_move[r1, c1] = d1
-
-            # Verifica se o tabuleiro após o primeiro movimento já é "Sem Solução"
-            if check_sem_solucao(board_after_first_move, board_size, block_size):
-                # Se o primeiro movimento isoladamente leva a "Sem Solução", registra e continua
-                # Podemos registrar a sequência como levando a "Sem Solução" após 1 passo.
-                # Para a análise de 2 passos, não precisamos explorar segundos movimentos.
-                # two_moves_leading_to_sem_solucao.append((first_move, "Any second move leads to Sem Solução"))
-                continue
-
-            # Se o tabuleiro após o primeiro movimento não é "Sem Solução", avalia possíveis segundos movimentos
-            empty_cells_after_first_move = get_empty_cells(board_after_first_move, board_size)
-
-            # Itera sobre cada possível segundo movimento
-            for r2, c2 in empty_cells_after_first_move:
-                for d2 in range(1, board_size + 1):
-                    second_move = (r2, c2, d2)
-
-                    # Verifica restrições básicas para o segundo movimento no tabuleiro após o primeiro movimento
-                    if violates_constraint(board_after_first_move, second_move, board_size, block_size):
-                        continue
-
-                    # Cria outra cópia profunda do tabuleiro (a partir do estado após o primeiro movimento) e aplica o segundo movimento
-                    board_after_two_moves = copy.deepcopy(board_after_first_move)
-                    board_after_two_moves[r2, c2] = d2
-
-                    # Verifica se o tabuleiro após os dois movimentos é "Sem Solução"
-                    if check_sem_solucao(board_after_two_moves, board_size, block_size):
-                        two_moves_leading_to_sem_solucao.append((first_move, second_move))
-                    else:
-                        two_moves_maintaining_solucao_possivel.append((first_move, second_move))
-
-
-    return two_moves_leading_to_sem_solucao, two_moves_maintaining_solucao_possivel
-
-
-def analyze_sudoku(board, file_name):
-    """
-    Realiza a análise completa do tabuleiro de Sudoku, classificando-o e avaliando heurísticas.
-    """
-    print(f"\nAnalisando o tabuleiro: {file_name}...")
-
-    # Use the global BOARD_SIZE and BLOCK_SIZE set by load_and_validate_board
-    is_sem_solucao = check_sem_solucao(board, BOARD_SIZE, BLOCK_SIZE)
-
-    print("\n--- RESULTADO DA CLASSIFICAÇÃO ---")
-    if is_sem_solucao:
-        print(f"Classificação para '{file_name}': Sem Solução")
-    else:
-        print(f"Classificação para '{file_name}': Solução Possível")
-
-        # Avaliação de movimentos em um passo
-        print("\n--- AVALIAÇÃO DE MOVIMENTOS EM UM PASSO ---")
-        moves_leading_to_sem_solucao_one_step, moves_maintaining_solucao_possivel_one_step = evaluate_one_move(board, BOARD_SIZE, BLOCK_SIZE)
-        print(f"Movimentos que levam a 'Sem Solução': {moves_leading_to_sem_solucao_one_step}")
-        print(f"Movimentos que mantêm 'Solução Possível': {moves_maintaining_solucao_possivel_one_step}")
-
-        # Avaliação de sequências de dois movimentos
-        print("\n--- AVALIAÇÃO DE SEQUÊNCIAS DE DOIS MOVIMENTOS ---")
-        two_moves_leading_to_sem_solucao, two_moves_maintaining_solucao_possivel = evaluate_two_moves(board, BOARD_SIZE, BLOCK_SIZE)
-        print(f"Sequências de dois movimentos que levam a 'Sem Solução': {two_moves_leading_to_sem_solucao}")
-        print(f"Sequências de dois movimentos que mantêm 'Solução Possível': {two_moves_maintaining_solucao_possivel}")
+    print("\n  - Jogadas com menor probabilidade de manter a solução (piores scores):")
+    for move, score in possible_moves_with_scores[-5:]:
+        print(f"    - Jogar {move[2]} em ({move[0]},{move[1]}) -> Score de Solvabilidade: {score:.4f}")
 
 
 # --- Ponto de Entrada do Script ---
 if __name__ == "__main__":
-    # 1. Valida se o argumento da pasta foi fornecido
     if len(sys.argv) != 2:
-        print("ERRO: Você precisa especificar o caminho para a pasta de tabuleiros.")
-        print("Uso: python seu_script.py <caminho_para_a_pasta>")
+        print("ERRO: Formato de uso incorreto.")
+        print("Uso: python questao2.py <caminho_para_pasta_de_testes>")
         exit()
-    
+
     directory_path = sys.argv[1]
-
-    # 2. Valida se o caminho fornecido é um diretório
     if not os.path.isdir(directory_path):
-        print(f"ERRO: O caminho '{directory_path}' não é um diretório válido.")
+        print(f"ERRO: O diretório '{directory_path}' não é válido.")
         exit()
 
-    print(f"\nProcessando arquivos CSV na pasta '{directory_path}'...")
+    csv_files = glob.glob(os.path.join(directory_path, '*.csv'))
+    if not csv_files:
+        print(f"Nenhum arquivo .csv encontrado no diretório '{directory_path}'.")
+        exit()
+        
+    required_sizes = set()
+    for file_path in csv_files:
+        try:
+            board_shape = np.loadtxt(file_path, delimiter=',', dtype=int).shape
+            if board_shape[0] == board_shape[1] and int(np.sqrt(board_shape[0]))**2 == board_shape[0]:
+                required_sizes.add(board_shape[0])
+        except Exception:
+            print(f"Aviso: Não foi possível ler as dimensões de {os.path.basename(file_path)}. O arquivo será ignorado.")
+            continue
     
-    # 3. Itera sobre os arquivos e analisa cada um
-    for filename in os.listdir(directory_path):
-        if filename.endswith(".csv"):
-            file_path = os.path.join(directory_path, filename)
-            board = load_and_validate_board(file_path)
-            if board is not None:
-                # O tamanho do tabuleiro é definido dinamicamente pela função load_and_validate_board
-                analyze_sudoku(board, filename)
+    trained_predicates = {}
+    for size in sorted(list(required_sizes)):
+        print(f"--- Preparando modelo para tabuleiros {size}x{size} ---")
+        model = SudokuNet(board_size=size).to(device)
+        predicate = ltn.Predicate(model=model)
+        train_model(predicate, board_size=size)
+        trained_predicates[size] = predicate
+
+    print(f"--- INICIANDO ANÁLISE EM LOTE DE {len(csv_files)} ARQUIVOS ---\n")
+    for file_path in csv_files:
+        try:
+            board = np.loadtxt(file_path, delimiter=',', dtype=int)
+            board_size = board.shape[0]
+            
+            if board_size not in trained_predicates:
+                continue
+
+            block_size = int(np.sqrt(board_size))
+            predicate = trained_predicates[board_size]
+            
+            analyze_sudoku_with_ltn(board, os.path.basename(file_path), board_size, block_size, predicate)
+            print("-" * 50)
+            
+        except Exception as e:
+            print(f"Ocorreu um erro ao processar o arquivo {os.path.basename(file_path)}: {e}\n")
+
+    print("--- ANÁLISE EM LOTE CONCLUÍDA ---")
