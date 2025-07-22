@@ -39,10 +39,10 @@ As heurísticas foram representadas como **restrições lógicas**, inspiradas n
 
 ## Execução
 
-### 🔹 Pré-requisitos
+### Pré-requisitos
 - Python 3.x
 - pandas, numpy
 
-### 🔹 Rodando o script
+### Rodando o script
 ```bash
-python heuristicas_sudoku.py
+python questão3.py
