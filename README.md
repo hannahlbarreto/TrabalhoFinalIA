@@ -6,7 +6,7 @@ Disciplina: Inteligência Artificial (2025.1) - Prof. Edjard Mota
 
 # Sudoku com Lógica e Heurísticas
 
-Este projeto implementa a classificação e análise de tabuleiros de Sudoku 4x4 utilizando **restrições lógicas**, **heurísticas** e, opcionalmente, **Logic Tensor Networks (LTN)**. A proposta explora abordagens simbólicas para validar, resolver e analisar Sudokus com e sem solução.
+Este projeto implementa a classificação e análise de tabuleiros de Sudoku 4x4 utilizando **restrições lógicas**, **heurísticas** e **Logic Tensor Networks (LTN)**. A proposta explora abordagens simbólicas para validar, resolver e analisar Sudokus com e sem solução.
 
 ## Funcionalidades
 
