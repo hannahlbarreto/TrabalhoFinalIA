@@ -11,7 +11,7 @@ Disciplina: Inteligência Artificial (2025.1) - Prof. Edjard Mota
 Execute o script via terminal, passando o caminho da pasta com os tabuleiros como argumento:
 
 ```bash
-python questao1.py /caminho/para/pasta
+questao1.py ./sudokus_teste
 ```
 
 ---
@@ -34,7 +34,7 @@ Classification Result: 0 (Expected: 0)
 Execute o script via terminal, passando o caminho da pasta com os tabuleiros como argumento:
 
 ```bash
-python questao2.py /caminho/para/pasta
+python3 questao2.py test_boards
 ```
 
 ## 📤 Exemplo de Saída
@@ -76,7 +76,7 @@ Classificação: Solução Possível
 Execute o script via terminal, passando o caminho da pasta com os tabuleiros como argumento:
 
 ```bash
-python questao3.py /caminho/para/pasta
+python3 questao3.py sudoku_aberto
 ```
 
 ## 📤 Exemplo de Saída
