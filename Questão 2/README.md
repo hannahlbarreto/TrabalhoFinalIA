@@ -135,4 +135,5 @@ Classificação: Solução Possível
 
 ## 📚 Referências
 
-- Donadello, I., Serafini, L., & Garcez, A. d. (2020). *Designing Logic Tensor Networks for Visual Sudoku Puzzle Classification*. [arXiv:2002.01532](https://arxiv.org/abs/2002.01532)
+- [LTNTorch](https://github.com/logictensornetworks/ltntorch)
+- [LTN: Learning with Soft Logic and Neural Networks](https://www.researchgate.net/profile/Marco-Russo-12/), Morra et al., 2023
