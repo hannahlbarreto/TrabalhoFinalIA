@@ -144,7 +144,7 @@ Classification Result: 0 (Expected: 0)
 
 ## 🧩 Referências
 
-- [LTN-Torch GitHub](https://github.com/logictensornetworks/ltn)
-- `LTN: Learning with Soft Logic and Neural Networks`, Donadello et al., 2017
+- [LTNTorch](https://github.com/logictensornetworks/ltntorch)
+- [LTN: Learning with Soft Logic and Neural Networks](https://www.researchgate.net/profile/Marco-Russo-12/), Morra et al., 2023
 
 ---
