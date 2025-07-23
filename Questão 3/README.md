@@ -66,7 +66,17 @@ Epoch 10 - SAT: MRV=0.472, Restrito=0.437
 
 Epoch 20 - SAT: MRV=0.563, Restrito=0.519
 
-...
+Epoch 30 - SAT: MRV=0.618, Restrito=0.588
+
+Epoch 40 - SAT: MRV=0.669, Restrito=0.632
+
+Epoch 50 - SAT: MRV=0.712, Restrito=0.691
+
+Epoch 60 - SAT: MRV=0.754, Restrito=0.725
+
+Epoch 70 - SAT: MRV=0.779, Restrito=0.761
+
+Epoch 80 - SAT: MRV=0.812, Restrito=0.786
 
 Epoch 90 - SAT: MRV=0.839, Restrito=0.811
 
