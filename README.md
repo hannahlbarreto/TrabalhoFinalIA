@@ -81,38 +81,26 @@ python questao3.py /caminho/para/pasta
 
 ## 📤 Exemplo de Saída
 ```
+--- Arquivo: sudoku_aberto.csv ---
 Tabuleiro carregado:
+ [[1 0 0 2]
+ [0 0 0 4]
+ [4 0 2 0]
+ [0 0 0 1]]
 
-[[1 0 0 2]
+Heurística MRV:
+Célula (0,2) → 1 possibilidade(s): [3]
+Célula (2,3) → 1 possibilidade(s): [3]
+Célula (0,1) → 2 possibilidade(s): [3, 4]
+Célula (1,0) → 2 possibilidade(s): [2, 3]
+Célula (1,1) → 2 possibilidade(s): [2, 3]
 
-[0 0 0 4]
-
-[4 0 2 0]
-
-[0 0 0 1]]
-
-Epoch 0 - SAT: MRV=0.401, Restrito=0.353
-
-Epoch 10 - SAT: MRV=0.472, Restrito=0.437
-
-Epoch 20 - SAT: MRV=0.563, Restrito=0.519
-
-Epoch 30 - SAT: MRV=0.618, Restrito=0.588
-
-Epoch 40 - SAT: MRV=0.669, Restrito=0.632
-
-Epoch 50 - SAT: MRV=0.712, Restrito=0.691
-
-Epoch 60 - SAT: MRV=0.754, Restrito=0.725
-
-Epoch 70 - SAT: MRV=0.779, Restrito=0.761
-
-Epoch 80 - SAT: MRV=0.812, Restrito=0.786
-
-Epoch 90 - SAT: MRV=0.839, Restrito=0.811
+Heurística 'Dígito mais restrito':
+Dígito 1 → 2 posição(ões) possíveis
+Dígito 4 → 2 posição(ões) possíveis
+Dígito 2 → 4 posição(ões) possíveis
+Dígito 3 → 10 posição(ões) possíveis
 ```
-
-Esses valores indicam o grau de satisfação das restrições lógicas aprendidas com as heurísticas.
 
 ## Sobre resolver Sudoku com LTN
 
