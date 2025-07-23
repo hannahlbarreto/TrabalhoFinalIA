@@ -11,7 +11,7 @@ Disciplina: Inteligência Artificial (2025.1) - Prof. Edjard Mota
 Execute o script via terminal, passando o caminho da pasta com os tabuleiros como argumento:
 
 ```bash
-questao1.py ./sudokus_teste
+python3 questao1.py ./sudokus_teste
 ```
 
 ---
