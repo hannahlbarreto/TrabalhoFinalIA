@@ -48,7 +48,7 @@ python questão3.py (certifique que o sudoku_aberto.csv está na mesma pasta)
 
 ---
 
-## Rodando o script
+## Exemplo de saída
 
 Tabuleiro carregado:
 
