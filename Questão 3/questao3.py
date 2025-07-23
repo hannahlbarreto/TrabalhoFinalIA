@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-
+import os
+import sys
 N = 4
 block_size = 2
 
@@ -67,6 +68,17 @@ def aplicar_heuristicas(csv_path):
     for d, count in digits[:4]:
         print(f"Dígito {d} → {count} posição(ões) possíveis")
 
+# Example usage: Get the directory path from command-line arguments
 if __name__ == "__main__":
-    aplicar_heuristicas("sudoku_aberto.csv")
+    if len(sys.argv) > 1:
+        test_directory_path = sys.argv[1]
+        for filename in os.listdir(test_dir):
+            if filename.endswith(".csv"):
+                file_path = os.path.join(test_dir, filename)
+                aplicar_heuristicas(file_path)
+                
+    else:
+        print("Usage: python questao3.py <directory_path>")
+        print("Please provide the path to the directory containing Sudoku board CSV files.")
+
 
