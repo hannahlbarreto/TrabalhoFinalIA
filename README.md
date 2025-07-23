@@ -108,7 +108,7 @@ Epoch 90 - SAT: MRV=0.839, Restrito=0.811
 
 Esses valores indicam o grau de satisfação das restrições lógicas aprendidas com as heurísticas.
 
-Sobre resolver Sudoku com LTN
+## Sobre resolver Sudoku com LTN
 
 A aplicação de Logic Tensor Networks ao Sudoku é possível e foi baseada no artigo: “Designing Logic Tensor Networks for Visual Sudoku puzzle classification” (Morra et al., 2023) No entanto, a abordagem LTN:
 
