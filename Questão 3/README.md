@@ -1,13 +1,13 @@
 # Sudoku com Heurísticas — Questão 3 (IA 2025.1)
 
-Este repositório contém a resolução da **Questão 3** do Trabalho Final da disciplina de **Inteligência Artificial (EC034 / ICC265)** — UFAM, 2025.1.
+A resolução da **Questão 3** do Trabalho Final da disciplina de **Inteligência Artificial (EC034 / ICC265)** — UFAM, 2025.1.
 
 ---
 
-## Eunciado
+## Enunciado
 
 > Indicar para um tabuleiro aberto quais heurísticas são mais recomendadas:
->
+
 > 1. Escolha conjuntos de heurísticas e compare o uso delas  
 > 2. Gere cláusulas para elas e insira no problema  
 > 3. Rode um SAT-solver ou outro solucionador do Sudoku que leia restrições lógicas + heurísticas  
@@ -44,5 +44,40 @@ As heurísticas foram representadas como **restrições lógicas**, inspiradas n
 - pandas, numpy
 
 ### Rodando o script
-```bash
-python questão3.py
+python questão3.py (certifique que o sudoku_aberto.csv está na mesma pasta)
+
+---
+
+## Rodando o script
+
+Tabuleiro carregado:
+
+[[1 0 0 2]
+
+ [0 0 0 4]
+ 
+ [4 0 2 0]
+ 
+ [0 0 0 1]]
+
+Epoch 0 - SAT: MRV=0.401, Restrito=0.353
+
+Epoch 10 - SAT: MRV=0.472, Restrito=0.437
+
+Epoch 20 - SAT: MRV=0.563, Restrito=0.519
+
+...
+
+Epoch 90 - SAT: MRV=0.839, Restrito=0.811
+
+Esses valores indicam o grau de satisfação das restrições lógicas aprendidas com as heurísticas. 
+
+---
+
+## Sobre resolver Sudoku com LTN
+
+A aplicação de Logic Tensor Networks ao Sudoku é possível e foi baseada no artigo: “Designing Logic Tensor Networks for Visual Sudoku puzzle classification” (Morra et al., 2023)
+No entanto, a abordagem LTN:
+> Depende de definições precisas de predicados e cláusulas lógicas
+> Enfrenta dificuldades de escalabilidade para tabuleiros maiores
+> É boa para classificar e aprender restrições, mas não substitui um SAT solver se a meta for encontrar a solução exata
