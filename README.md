@@ -1,3 +1,9 @@
+Nomes: Hannah Barreto, Matheus Rocha, Paulo Freitas, Luã Souza e Ricardo Braz
+
+Alunos de Ciência da Computação e Engenharia da Computação
+
+Disciplina: Inteligência Artificial (2025.1) - Prof. Edjard Mota
+
 # ✅ Classificação de Tabuleiros de Sudoku com Logic Tensor Networks (LTN) - Questão 1
 
 ## 📥 Como Usar
