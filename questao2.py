@@ -10,6 +10,8 @@ import copy
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"INFO: Usando dispositivo: {device}\n")
 
+# --- 928918-9819-4
+
 
 # --- Parte 1: Definições da Rede Neural e do Predicado LTN ---
 
